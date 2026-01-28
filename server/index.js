@@ -5,12 +5,20 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import { v2 as cloudinary } from "cloudinary";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3005;
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Создаём папки для данных и изображений
 const dataDir = path.join(__dirname, "data");
@@ -143,37 +151,49 @@ app.post("/api/projects", authLimiter, (req, res) => {
 });
 
 // POST /api/upload - загрузить файл (изображение или видео)
-app.post("/api/upload", uploadLimiter, upload.single("image"), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+app.post(
+  "/api/upload",
+  uploadLimiter,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
 
-    const fileUrl = `/images/${req.file.filename}`;
-    res.json({
-      success: true,
-      url: fileUrl,
-      filename: req.file.filename,
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Failed to upload file" });
-  }
-});
+      // Upload to Cloudinary
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: "portfolio",
+        resource_type: "auto", // Automatically detects image or video
+      });
+
+      // Delete temporary file
+      fs.unlinkSync(req.file.path);
+
+      // Return Cloudinary URL
+      res.json({
+        success: true,
+        url: uploadResult.secure_url,
+        filename: uploadResult.public_id,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  },
+);
 
 // DELETE /api/images/:filename - удалить изображение
-app.delete("/api/images/:filename", authLimiter, (req, res) => {
+app.delete("/api/images/:filename", authLimiter, async (req, res) => {
   try {
     const filename = req.params.filename;
-    const filePath = path.join(imagesDir, filename);
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({ success: true, message: "Image deleted" });
-    } else {
-      res.status(404).json({ error: "Image not found" });
-    }
+    // Delete from Cloudinary (filename is the public_id)
+    await cloudinary.uploader.destroy(filename);
+
+    res.json({ success: true, message: "Image deleted" });
   } catch (error) {
+    console.error("Delete error:", error);
     res.status(500).json({ error: "Failed to delete image" });
   }
 });
