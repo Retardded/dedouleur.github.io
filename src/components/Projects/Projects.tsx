@@ -9,7 +9,9 @@ function getCloudinaryVideoPoster(
 ): string | null {
   if (!videoUrl) return null;
   try {
-    const url = new URL(videoUrl);
+    const raw = videoUrl.trim();
+    if (!raw) return null;
+    const url = new URL(raw);
     if (!url.hostname.includes("res.cloudinary.com")) return null;
     // Cloudinary can generate a thumbnail from a video by seeking to a timestamp.
     // We use ~3s to avoid blank first frames. Ensure the final URL ends with .jpg
@@ -34,7 +36,9 @@ function getCloudinaryVideoPoster(
 function getCloudinaryIOSVideoSrc(videoUrl?: string | null): string | null {
   if (!videoUrl) return null;
   try {
-    const url = new URL(videoUrl);
+    const raw = videoUrl.trim();
+    if (!raw) return null;
+    const url = new URL(raw);
     if (!url.hostname.includes("res.cloudinary.com")) return null;
 
     // Force an iOS-friendly MP4/H.264 delivery. This avoids white-screen playback
