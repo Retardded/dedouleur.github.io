@@ -2,10 +2,18 @@
 // Replace with: http://YOUR_VPS_IP:3005
 // Or: https://api.yourdomain.com (if using domain with SSL)
 // Targeting VPS Backend
+function normalizeBaseUrl(url: string): string {
+  // Remove trailing slashes so `${base}/api/...` never becomes `//api/...`
+  return url.replace(/\/+$/, "");
+}
+
 // Prefer explicit env var, otherwise use same-origin (fixes admin on VPS + HTTPS).
-const API_BASE_URL =
+const API_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "https://dedouleur.mooo.com");
+    (typeof window !== "undefined"
+      ? window.location.origin
+      : "https://dedouleur.mooo.com"),
+);
 
 export type Project = {
   id: number;
