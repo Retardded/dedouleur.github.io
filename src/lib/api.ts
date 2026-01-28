@@ -42,22 +42,8 @@ export async function fetchProjects(): Promise<Project[]> {
     console.log("Fetched projects:", data?.length || 0, "items");
 
     if (Array.isArray(data)) {
-      return data.map((p: any) => {
-        const newProject = { ...p };
-        if (newProject.image && typeof newProject.image === "string") {
-          newProject.image = newProject.image.replace(
-            "localhost",
-            window.location.hostname,
-          );
-        }
-        if (newProject.video && typeof newProject.video === "string") {
-          newProject.video = newProject.video.replace(
-            "localhost",
-            window.location.hostname,
-          );
-        }
-        return newProject;
-      });
+      // Cloudinary URLs are already full URLs, no need to modify
+      return data;
     }
     return [];
   } catch (error: any) {
@@ -121,8 +107,8 @@ export async function uploadImage(file: File): Promise<string | null> {
     }
 
     const data = await response.json();
-    // Возвращаем полный URL изображения
-    return `${API_BASE_URL}${data.url}`;
+    // Cloudinary returns full URL already, no need to prepend
+    return data.url;
   } catch (error) {
     console.error("Error uploading image:", error);
     return null;
