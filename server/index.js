@@ -96,8 +96,18 @@ const envCorsOrigins = (process.env.CORS_ORIGINS || "")
   .map((s) => s.trim())
   .filter(Boolean);
 
+const allowedOrigins = new Set([...defaultCorsOrigins, ...envCorsOrigins]);
+
 const corsOptions = {
-  origin: [...new Set([...defaultCorsOrigins, ...envCorsOrigins])],
+  // Explicitly reflect allowed origins (required for credentialed requests).
+  // If you want to allow everything temporarily, set CORS_ORIGINS="*".
+  origin(origin, cb) {
+    // Non-browser clients (curl/postman) may omit Origin.
+    if (!origin) return cb(null, true);
+    if (envCorsOrigins.includes("*")) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
 };
