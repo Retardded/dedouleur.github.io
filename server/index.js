@@ -69,8 +69,17 @@ const authLimiter = rateLimit({
   message: "Too many authentication attempts, please try again later.",
 });
 
-// Middleware
-app.use(cors());
+// Middleware - CORS configuration for Netlify frontend
+const corsOptions = {
+  origin: [
+    "https://dedouleur.netlify.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "200mb" }));
 app.use(express.static(path.join(__dirname, "..", "dist")));
 app.use("/images", express.static(imagesDir));
