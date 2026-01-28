@@ -2,7 +2,10 @@
 // Replace with: http://YOUR_VPS_IP:3005
 // Or: https://api.yourdomain.com (if using domain with SSL)
 // Targeting VPS Backend
-const API_BASE_URL = "https://dedouleur.mooo.com";
+// Prefer explicit env var, otherwise use same-origin (fixes admin on VPS + HTTPS).
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== "undefined" ? window.location.origin : "https://dedouleur.mooo.com");
 
 export type Project = {
   id: number;
