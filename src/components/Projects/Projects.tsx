@@ -3,6 +3,30 @@ import "./Projects.css";
 import { fetchProjects } from "../../lib/api";
 import { defaultProjects } from "../../data/defaultProjects";
 
+function getCloudinaryVideoPoster(videoUrl?: string | null): string | null {
+  if (!videoUrl) return null;
+  try {
+    const url = new URL(videoUrl);
+    if (!url.hostname.includes("res.cloudinary.com")) return null;
+    // Cloudinary allows generating a thumbnail from a video by requesting .jpg
+    // and (optionally) seeking to a timestamp. `so_0` grabs the first frame.
+    url.pathname = url.pathname
+      .replace("/video/upload/", "/video/upload/so_0/")
+      .replace(/\.(mp4|webm|mov|ogg)$/i, ".jpg");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function canHover(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches
+  );
+}
+
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState(defaultProjects);
   const [filter, setFilter] = useState<"all" | "image" | "video">("all");
@@ -135,9 +159,21 @@ const Projects: React.FC = () => {
                     muted
                     loop
                     playsInline
-                    poster={project.image}
-                    onMouseOver={(e) => e.currentTarget.play()}
-                    onMouseOut={(e) => e.currentTarget.pause()}
+                    preload="metadata"
+                    poster={
+                      project.image ||
+                      getCloudinaryVideoPoster(project.video) ||
+                      undefined
+                    }
+                    onMouseOver={(e) => {
+                      // iOS/Android have no hover; avoid weird play() errors.
+                      if (!canHover()) return;
+                      void e.currentTarget.play();
+                    }}
+                    onMouseOut={(e) => {
+                      if (!canHover()) return;
+                      e.currentTarget.pause();
+                    }}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -190,6 +226,8 @@ const Projects: React.FC = () => {
                 src={currentProject.video}
                 controls
                 autoPlay
+                playsInline
+                preload="metadata"
                 className="modal__image"
               />
             ) : (
