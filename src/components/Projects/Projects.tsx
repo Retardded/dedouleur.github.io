@@ -11,14 +11,45 @@ function getCloudinaryVideoPoster(
   try {
     const url = new URL(videoUrl);
     if (!url.hostname.includes("res.cloudinary.com")) return null;
-    // Cloudinary allows generating a thumbnail from a video by requesting .jpg
-    // and (optionally) seeking to a timestamp. We use ~3s to avoid blank first frames.
-    url.pathname = url.pathname
-      .replace(
-        "/video/upload/",
-        `/video/upload/so_${Math.max(0, Math.floor(seconds))},f_jpg,q_auto/`,
-      )
-      .replace(/\.(mp4|webm|mov|ogg)$/i, ".jpg");
+    // Cloudinary can generate a thumbnail from a video by seeking to a timestamp.
+    // We use ~3s to avoid blank first frames. Ensure the final URL ends with .jpg
+    // even if the original Cloudinary URL is extension-less.
+    const seek = Math.max(0, Math.floor(seconds));
+    url.pathname = url.pathname.replace(
+      "/video/upload/",
+      `/video/upload/so_${seek},f_jpg,q_auto/`,
+    );
+
+    if (/\.(mp4|webm|mov|ogg)$/i.test(url.pathname)) {
+      url.pathname = url.pathname.replace(/\.(mp4|webm|mov|ogg)$/i, ".jpg");
+    } else if (!/\.jpg$/i.test(url.pathname)) {
+      url.pathname = `${url.pathname}.jpg`;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function getCloudinaryIOSVideoSrc(videoUrl?: string | null): string | null {
+  if (!videoUrl) return null;
+  try {
+    const url = new URL(videoUrl);
+    if (!url.hostname.includes("res.cloudinary.com")) return null;
+
+    // Force an iOS-friendly MP4/H.264 delivery. This avoids white-screen playback
+    // when the original asset is WebM/VP9 or another unsupported codec on iOS.
+    url.pathname = url.pathname.replace(
+      "/video/upload/",
+      "/video/upload/f_mp4,vc_h264,ac_aac/",
+    );
+
+    if (/\.(webm|mov|ogg)$/i.test(url.pathname)) {
+      url.pathname = url.pathname.replace(/\.(webm|mov|ogg)$/i, ".mp4");
+    } else if (!/\.mp4$/i.test(url.pathname)) {
+      url.pathname = `${url.pathname}.mp4`;
+    }
+
     return url.toString();
   } catch {
     return null;
@@ -161,7 +192,7 @@ const Projects: React.FC = () => {
               >
                 {project.type === "video" ? (
                   <video
-                    src={project.video}
+                    src={getCloudinaryIOSVideoSrc(project.video) || project.video}
                     muted
                     loop
                     playsInline
@@ -229,7 +260,10 @@ const Projects: React.FC = () => {
           <div className="modal__content" onClick={(e) => e.stopPropagation()}>
             {currentProject.type === "video" ? (
               <video
-                src={currentProject.video}
+                src={
+                  getCloudinaryIOSVideoSrc(currentProject.video) ||
+                  currentProject.video
+                }
                 controls
                 playsInline
                 preload="metadata"
