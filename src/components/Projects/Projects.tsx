@@ -3,15 +3,21 @@ import "./Projects.css";
 import { fetchProjects } from "../../lib/api";
 import { defaultProjects } from "../../data/defaultProjects";
 
-function getCloudinaryVideoPoster(videoUrl?: string | null): string | null {
+function getCloudinaryVideoPoster(
+  videoUrl?: string | null,
+  seconds: number = 3,
+): string | null {
   if (!videoUrl) return null;
   try {
     const url = new URL(videoUrl);
     if (!url.hostname.includes("res.cloudinary.com")) return null;
     // Cloudinary allows generating a thumbnail from a video by requesting .jpg
-    // and (optionally) seeking to a timestamp. `so_0` grabs the first frame.
+    // and (optionally) seeking to a timestamp. We use ~3s to avoid blank first frames.
     url.pathname = url.pathname
-      .replace("/video/upload/", "/video/upload/so_0/")
+      .replace(
+        "/video/upload/",
+        `/video/upload/so_${Math.max(0, Math.floor(seconds))},f_jpg,q_auto/`,
+      )
       .replace(/\.(mp4|webm|mov|ogg)$/i, ".jpg");
     return url.toString();
   } catch {
@@ -162,7 +168,7 @@ const Projects: React.FC = () => {
                     preload="metadata"
                     poster={
                       project.image ||
-                      getCloudinaryVideoPoster(project.video) ||
+                      getCloudinaryVideoPoster(project.video, 3) ||
                       undefined
                     }
                     onMouseOver={(e) => {
@@ -225,9 +231,13 @@ const Projects: React.FC = () => {
               <video
                 src={currentProject.video}
                 controls
-                autoPlay
                 playsInline
                 preload="metadata"
+                poster={
+                  currentProject.image ||
+                  getCloudinaryVideoPoster(currentProject.video, 3) ||
+                  undefined
+                }
                 className="modal__image"
               />
             ) : (
