@@ -1,6 +1,7 @@
 // Configure your VPS backend URL here
 // Replace with: http://YOUR_VPS_IP:3005
 // Or: https://api.yourdomain.com (if using domain with SSL)
+// Targeting VPS Backend
 const API_BASE_URL = "https://138.124.70.82:3005";
 
 export type Project = {
