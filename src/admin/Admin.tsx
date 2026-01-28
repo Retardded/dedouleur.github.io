@@ -256,28 +256,33 @@ const Admin: React.FC = () => {
         );
 
         try {
-          // Сжимаем изображение
-          const compressedDataUrl = await compressImage(file);
+          let fileToUpload = file;
+          const isVideo = file.type.startsWith("video/");
 
-          // Конвертируем base64 в Blob/File
-          const response = await fetch(compressedDataUrl);
-          const blob = await response.blob();
-          const compressedFile = new File([blob], file.name, {
-            type: "image/jpeg",
-          });
+          // Only compress images, skip compression for videos
+          if (!isVideo) {
+            const compressedDataUrl = await compressImage(file);
+            const response = await fetch(compressedDataUrl);
+            const blob = await response.blob();
+            fileToUpload = new File([blob], file.name, {
+              type: "image/jpeg",
+            });
+          }
 
-          // Загружаем
-          const imageUrl = await uploadImage(compressedFile);
+          // Upload the file (compressed image or original video)
+          const imageUrl = await uploadImage(fileToUpload);
 
           if (imageUrl) {
-            // Создаем временный проект (ID поправим при добавлении в стейт)
+            // Create project with auto-detected type
             newProjects.push({
               id: 0,
               title: file.name.split(".")[0] || "New Project",
               description: "",
               year: String(new Date().getFullYear()),
               category: "Uncategorized",
-              image: imageUrl,
+              image: isVideo ? undefined : imageUrl,
+              video: isVideo ? imageUrl : undefined,
+              type: isVideo ? "video" : "image",
             });
             successful++;
           } else {
