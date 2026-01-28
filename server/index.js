@@ -41,7 +41,7 @@ const apiLimiter = rateLimit({
 
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // limit each IP to 50 uploads per hour
+  max: 500, // limit each IP to 500 uploads per hour (supports bulk uploads)
   message: "Too many upload requests, please try again later.",
 });
 
@@ -53,7 +53,7 @@ const authLimiter = rateLimit({
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "200mb" }));
 app.use(express.static(path.join(__dirname, "..", "dist")));
 app.use("/images", express.static(imagesDir));
 
@@ -70,7 +70,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB (supports larger video files)
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|webm|ogg|mov/;
     const extname = allowedTypes.test(
