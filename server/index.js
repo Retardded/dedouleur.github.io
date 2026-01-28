@@ -84,7 +84,7 @@ const authLimiter = rateLimit({
 const corsOptions = {
   origin: [
     "https://dedouleur.netlify.app",
-    "https://cvrzdqq.mooo.com",
+    "https://dedouleur.mooo.com",
     "http://138.124.70.82:3005",
     "http://localhost:5173",
     "http://localhost:3000",

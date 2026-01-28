@@ -2,7 +2,7 @@
 // Replace with: http://YOUR_VPS_IP:3005
 // Or: https://api.yourdomain.com (if using domain with SSL)
 // Targeting VPS Backend
-const API_BASE_URL = "https://cvrzdqq.mooo.com";
+const API_BASE_URL = "https://dedouleur.mooo.com";
 
 export type Project = {
   id: number;
