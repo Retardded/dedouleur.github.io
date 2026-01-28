@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./Admin.css";
-import { fetchProjects, saveProjects, uploadImage, Project } from "../lib/api";
+import {
+  fetchProjects,
+  saveProjects,
+  uploadImage,
+  verifyAdminPin,
+  Project,
+} from "../lib/api";
 import { defaultProjects } from "../data/defaultProjects";
 
 // Функция сжатия изображения
@@ -66,16 +72,41 @@ const Admin: React.FC = () => {
   }, [projects]);
 
   const [pin, setPin] = useState<string>("");
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem("admin_authed") === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Restore auth from stored PIN (and validate against server)
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const storedPin = localStorage.getItem("admin_pin");
+        if (!storedPin) {
+          if (alive) setIsAuthorized(false);
+          return;
+        }
+
+        const ok = await verifyAdminPin(storedPin);
+        if (!alive) return;
+        if (ok) {
+          setIsAuthorized(true);
+        } else {
+          localStorage.removeItem("admin_pin");
+          setIsAuthorized(false);
+        }
+      } catch {
+        if (alive) setIsAuthorized(false);
+      } finally {
+        if (alive) setIsAuthChecking(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Загружаем проекты с сервера при монтировании и при авторизации
   useEffect(() => {
@@ -343,14 +374,20 @@ const Admin: React.FC = () => {
     }
   };
 
-  const authorize = () => {
-    const correct =
-      localStorage.getItem("admin_pin") || "KJr5iCm9iwsMsl50ojXSHpTe";
-    if (pin === correct) {
-      localStorage.setItem("admin_authed", "true");
-      setIsAuthorized(true);
-    } else {
-      alert("Wrong PIN");
+  const authorize = async () => {
+    setSaveStatus("");
+    setIsAuthChecking(true);
+    try {
+      const ok = await verifyAdminPin(pin);
+      if (ok) {
+        localStorage.setItem("admin_pin", pin);
+        setPin("");
+        setIsAuthorized(true);
+      } else {
+        alert("Wrong PIN");
+      }
+    } finally {
+      setIsAuthChecking(false);
     }
   };
 
@@ -358,6 +395,11 @@ const Admin: React.FC = () => {
     return (
       <div className="admin admin--auth">
         <h2>Admin — enter PIN</h2>
+        {isAuthChecking ? (
+          <div style={{ opacity: 0.75, marginBottom: "0.75rem" }}>
+            Checking…
+          </div>
+        ) : null}
         <input
           type="password"
           value={pin}
@@ -365,7 +407,9 @@ const Admin: React.FC = () => {
           placeholder="PIN"
           onKeyPress={(e) => e.key === "Enter" && authorize()}
         />
-        <button onClick={authorize}>Enter</button>
+        <button onClick={authorize} disabled={isAuthChecking || pin.length === 0}>
+          Enter
+        </button>
       </div>
     );
   }

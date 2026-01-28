@@ -26,6 +26,16 @@ const API_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_API_URL || defaultApiBaseUrl(),
 );
 
+function getAdminAuthHeaders(): Record<string, string> {
+  try {
+    const pin = localStorage.getItem("admin_pin");
+    if (!pin) return {};
+    return { Authorization: `Bearer ${pin}` };
+  } catch {
+    return {};
+  }
+}
+
 export type Project = {
   id: number;
   title: string;
@@ -95,6 +105,21 @@ export async function fetchProjects(): Promise<Project[]> {
   }
 }
 
+export async function verifyAdminPin(pin: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/verify`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${pin}`,
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error verifying admin pin:", error);
+    return false;
+  }
+}
+
 // Сохранить проекты
 export async function saveProjects(projects: Project[]): Promise<boolean> {
   try {
@@ -102,6 +127,7 @@ export async function saveProjects(projects: Project[]): Promise<boolean> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...getAdminAuthHeaders(),
       },
       body: JSON.stringify(projects),
     });
@@ -131,6 +157,9 @@ export async function uploadImage(file: File): Promise<string | null> {
 
     const response = await fetch(`${API_BASE_URL}/api/upload`, {
       method: "POST",
+      headers: {
+        ...getAdminAuthHeaders(),
+      },
       body: formData,
     });
 
@@ -152,6 +181,9 @@ export async function deleteImage(filename: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/images/${filename}`, {
       method: "DELETE",
+      headers: {
+        ...getAdminAuthHeaders(),
+      },
     });
 
     return response.ok;

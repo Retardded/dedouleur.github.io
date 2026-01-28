@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -19,6 +20,64 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3005;
+
+// ---------------------------------------------------------------------------
+// Admin auth (PIN) — server-side, env-based, hashed (no secrets in frontend)
+// ---------------------------------------------------------------------------
+const ADMIN_PIN_SALT = process.env.ADMIN_PIN_SALT;
+const ADMIN_PIN_HASH = process.env.ADMIN_PIN_HASH; // base64(scrypt(pin, salt))
+
+if (!ADMIN_PIN_SALT || !ADMIN_PIN_HASH) {
+  console.warn(
+    "⚠️  Admin PIN is NOT configured. Set ADMIN_PIN_SALT and ADMIN_PIN_HASH to enable admin-only endpoints.",
+  );
+}
+
+function getAdminPinFromRequest(req) {
+  const auth = req.headers.authorization;
+  if (typeof auth === "string" && auth.toLowerCase().startsWith("bearer ")) {
+    return auth.slice("bearer ".length).trim();
+  }
+
+  const headerPin = req.headers["x-admin-pin"];
+  if (typeof headerPin === "string") return headerPin.trim();
+  return null;
+}
+
+function verifyAdminPin(pin) {
+  if (!ADMIN_PIN_SALT || !ADMIN_PIN_HASH) return false;
+  if (typeof pin !== "string" || pin.length === 0) return false;
+
+  let expected;
+  try {
+    expected = Buffer.from(ADMIN_PIN_HASH, "base64");
+  } catch {
+    return false;
+  }
+  if (expected.length === 0) return false;
+
+  const actual = crypto.scryptSync(pin, ADMIN_PIN_SALT, expected.length);
+  if (actual.length !== expected.length) return false;
+  return crypto.timingSafeEqual(actual, expected);
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_PIN_SALT || !ADMIN_PIN_HASH) {
+    return res.status(503).json({
+      error:
+        "Admin PIN is not configured on the server (missing ADMIN_PIN_SALT / ADMIN_PIN_HASH).",
+    });
+  }
+
+  const pin = getAdminPinFromRequest(req);
+  if (!pin) return res.status(401).json({ error: "Missing admin credentials" });
+
+  if (!verifyAdminPin(pin)) {
+    return res.status(401).json({ error: "Invalid admin credentials" });
+  }
+
+  return next();
+}
 
 // Configure Cloudinary
 cloudinary.config({
@@ -166,6 +225,11 @@ const upload = multer({
 
 // API Routes
 
+// Admin: verify PIN (used by frontend to "log in")
+app.get("/api/admin/verify", authLimiter, requireAdmin, (req, res) => {
+  res.json({ ok: true });
+});
+
 // GET /api/projects - получить все проекты
 app.get("/api/projects", apiLimiter, async (req, res) => {
   try {
@@ -177,7 +241,7 @@ app.get("/api/projects", apiLimiter, async (req, res) => {
 });
 
 // POST /api/projects - сохранить проекты
-app.post("/api/projects", apiLimiter, async (req, res) => {
+app.post("/api/projects", apiLimiter, requireAdmin, async (req, res) => {
   try {
     const projects = req.body;
     if (!Array.isArray(projects)) {
@@ -200,6 +264,7 @@ app.post("/api/projects", apiLimiter, async (req, res) => {
 app.post(
   "/api/upload",
   uploadLimiter,
+  requireAdmin,
   upload.single("image"),
   async (req, res) => {
     try {
@@ -238,7 +303,7 @@ app.post(
 );
 
 // DELETE /api/images/:filename - удалить изображение
-app.delete("/api/images/:filename", authLimiter, async (req, res) => {
+app.delete("/api/images/:filename", authLimiter, requireAdmin, async (req, res) => {
   try {
     const filename = req.params.filename;
 
