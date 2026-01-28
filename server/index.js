@@ -104,8 +104,8 @@ const corsOptions = {
   origin(origin, cb) {
     // Non-browser clients (curl/postman) may omit Origin.
     if (!origin) return cb(null, true);
-    if (envCorsOrigins.includes("*")) return cb(null, true);
-    if (allowedOrigins.has(origin)) return cb(null, true);
+    if (envCorsOrigins.includes("*")) return cb(null, origin);
+    if (allowedOrigins.has(origin)) return cb(null, origin);
     return cb(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
