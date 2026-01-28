@@ -137,6 +137,10 @@ server {
     listen 80;
     server_name $DOMAIN;
 
+    # Allow large uploads (otherwise Nginx can return 413 Request Entity Too Large)
+    # Adjust as needed (e.g. 50m, 200m)
+    client_max_body_size 200m;
+
     # Serve frontend static files
     root $APP_DIR/dist;
     index index.html;
@@ -148,6 +152,9 @@ server {
 
     # Backend API - proxy to Node.js
     location /api {
+        # Also apply here for clarity (server-level directive above is sufficient)
+        client_max_body_size 200m;
+
         proxy_pass http://localhost:$PORT;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;

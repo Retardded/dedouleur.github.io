@@ -247,6 +247,10 @@ server {
     listen 80;
     server_name api.yourdomain.com;
 
+    # Allow uploads (otherwise Nginx can return 413 Request Entity Too Large)
+    # Adjust as needed (e.g. 50m, 200m)
+    client_max_body_size 200m;
+
     location / {
         proxy_pass http://localhost:3005;
         proxy_http_version 1.1;
