@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -25,6 +26,16 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+if (
+  !process.env.CLOUDINARY_CLOUD_NAME ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !process.env.CLOUDINARY_API_SECRET
+) {
+  console.warn(
+    "⚠️  Cloudinary env vars missing. Uploads to /api/upload will fail until CLOUDINARY_* are set.",
+  );
+}
 
 // Initialize database
 initDatabase();
@@ -165,7 +176,11 @@ app.post(
       });
 
       // Delete temporary file
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.warn("⚠️  Failed to delete temp upload file:", req.file.path, e);
+      }
 
       // Return Cloudinary URL
       res.json({
@@ -175,7 +190,11 @@ app.post(
       });
     } catch (error) {
       console.error("Upload error:", error);
-      res.status(500).json({ error: "Failed to upload file" });
+      const message =
+        error?.message ||
+        error?.error?.message ||
+        "Failed to upload file (unknown error)";
+      res.status(500).json({ error: message });
     }
   },
 );
