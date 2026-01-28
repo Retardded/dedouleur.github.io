@@ -81,14 +81,23 @@ const authLimiter = rateLimit({
 });
 
 // Middleware - CORS configuration for Netlify frontend and VPS
+const defaultCorsOrigins = [
+  "https://dedouleur.netlify.app",
+  "https://dedouleur.mooo.com",
+  // Common GitHub Pages origins (add your exact repo origin here if different)
+  "https://retardded.github.io",
+  // Local dev
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+const envCorsOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const corsOptions = {
-  origin: [
-    "https://dedouleur.netlify.app",
-    "https://dedouleur.mooo.com",
-    "http://138.124.70.82:3005",
-    "http://localhost:5173",
-    "http://localhost:3000",
-  ],
+  origin: [...new Set([...defaultCorsOrigins, ...envCorsOrigins])],
   credentials: true,
   optionsSuccessStatus: 200,
 };

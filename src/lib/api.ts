@@ -7,12 +7,23 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, "");
 }
 
-// Prefer explicit env var, otherwise use same-origin (fixes admin on VPS + HTTPS).
+function defaultApiBaseUrl(): string {
+  // In production on GitHub Pages, same-origin has no backend -> /api/* will 404.
+  // So we default to the VPS API domain unless explicitly overridden by VITE_API_URL.
+  if (typeof window === "undefined") return "https://dedouleur.mooo.com";
+
+  const host = window.location.hostname.toLowerCase();
+  const isGithubPages = host.endsWith(".github.io");
+  if (isGithubPages) return "https://dedouleur.mooo.com";
+
+  // For local dev or when frontend is served by the backend (same origin),
+  // use same-origin by default.
+  return window.location.origin;
+}
+
+// Prefer explicit env var, otherwise use smart default.
 const API_BASE_URL = normalizeBaseUrl(
-  import.meta.env.VITE_API_URL ||
-    (typeof window !== "undefined"
-      ? window.location.origin
-      : "https://dedouleur.mooo.com"),
+  import.meta.env.VITE_API_URL || defaultApiBaseUrl(),
 );
 
 export type Project = {
