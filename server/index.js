@@ -133,7 +133,7 @@ app.get("/api/projects", apiLimiter, (req, res) => {
 });
 
 // POST /api/projects - сохранить проекты
-app.post("/api/projects", authLimiter, (req, res) => {
+app.post("/api/projects", apiLimiter, (req, res) => {
   try {
     const projects = req.body;
     if (!Array.isArray(projects)) {
