@@ -1,4 +1,4 @@
-const API_BASE_URL = `http://${window.location.hostname}:3005`;
+const API_BASE_URL = "https://dedouleur.onrender.com";
 
 export type Project = {
   id: number;
@@ -8,7 +8,7 @@ export type Project = {
   category: string;
   image?: string;
   video?: string;
-  type?: 'image' | 'video';
+  type?: "image" | "video";
 };
 
 // Получить все проекты
