@@ -56,20 +56,13 @@ function getCloudinaryIOSVideoSrc(videoUrl?: string | null): string | null {
   }
 }
 
-function canHover(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(hover: hover) and (pointer: fine)").matches
-  );
-}
-
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState(defaultProjects);
   const [filter, setFilter] = useState<"all" | "image" | "video">("all");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+  const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -96,6 +89,11 @@ const Projects: React.FC = () => {
 
   const currentProject =
     selectedImageIndex !== null ? filteredProjects[selectedImageIndex] : null;
+
+  // Reset per-modal state when switching items
+  useEffect(() => {
+    setVideoFailed(false);
+  }, [selectedImageIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -191,36 +189,26 @@ const Projects: React.FC = () => {
                 onClick={() => handleImageClick(index)}
               >
                 {project.type === "video" ? (
-                  <video
-                    src={getCloudinaryIOSVideoSrc(project.video) || project.video}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    poster={
+                  (() => {
+                    const poster =
                       project.image ||
                       getCloudinaryVideoPoster(project.video, 3) ||
-                      undefined
-                    }
-                    onMouseOver={(e) => {
-                      // iOS/Android have no hover; avoid weird play() errors.
-                      if (!canHover()) return;
-                      void e.currentTarget.play();
-                    }}
-                    onMouseOut={(e) => {
-                      if (!canHover()) return;
-                      e.currentTarget.pause();
-                    }}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
+                      undefined;
+                    return poster ? (
+                      <>
+                        <img src={poster} alt={project.title} />
+                        <div className="gallery__play-badge" aria-hidden="true">
+                          ▶
+                        </div>
+                      </>
+                    ) : (
+                      <div className="gallery__video-placeholder">
+                        Video preview unavailable
+                      </div>
+                    );
+                  })()
                 ) : (
-                  project.image && (
-                    <img src={project.image} alt={project.title} />
-                  )
+                  project.image && <img src={project.image} alt={project.title} />
                 )}
               </div>
             </figure>
@@ -259,21 +247,41 @@ const Projects: React.FC = () => {
           </button>
           <div className="modal__content" onClick={(e) => e.stopPropagation()}>
             {currentProject.type === "video" ? (
-              <video
-                src={
-                  getCloudinaryIOSVideoSrc(currentProject.video) ||
-                  currentProject.video
-                }
-                controls
-                playsInline
-                preload="metadata"
-                poster={
-                  currentProject.image ||
-                  getCloudinaryVideoPoster(currentProject.video, 3) ||
-                  undefined
-                }
-                className="modal__image"
-              />
+              videoFailed ? (
+                currentProject.image ||
+                getCloudinaryVideoPoster(currentProject.video, 3) ? (
+                  <img
+                    src={
+                      currentProject.image ||
+                      getCloudinaryVideoPoster(currentProject.video, 3) ||
+                      ""
+                    }
+                    alt={currentProject.title}
+                    className="modal__image"
+                  />
+                ) : (
+                  <div style={{ color: "white" }}>
+                    Video could not be loaded.
+                  </div>
+                )
+              ) : (
+                <video
+                  src={
+                    getCloudinaryIOSVideoSrc(currentProject.video) ||
+                    currentProject.video
+                  }
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={
+                    currentProject.image ||
+                    getCloudinaryVideoPoster(currentProject.video, 3) ||
+                    undefined
+                  }
+                  className="modal__image"
+                  onError={() => setVideoFailed(true)}
+                />
+              )
             ) : (
               currentProject.image && (
                 <img
