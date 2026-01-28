@@ -85,12 +85,18 @@ export async function saveProjects(projects: Project[]): Promise<boolean> {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to save projects");
+      const errorText = await response.text();
+      console.error("Save failed:", response.status, errorText);
+      throw new Error(`Failed to save projects: ${response.status} ${errorText}`);
     }
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving projects:", error);
+    // Check for mixed content error
+    if (error.message?.includes("mixed content") || error.message?.includes("insecure")) {
+      console.error("⚠️ Mixed content blocked: HTTPS site cannot call HTTP backend. Set up HTTPS on VPS or use Cloudflare proxy.");
+    }
     return false;
   }
 }

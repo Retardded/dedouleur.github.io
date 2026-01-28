@@ -80,10 +80,11 @@ const authLimiter = rateLimit({
   message: "Too many authentication attempts, please try again later.",
 });
 
-// Middleware - CORS configuration for Netlify frontend
+// Middleware - CORS configuration for Netlify frontend and VPS
 const corsOptions = {
   origin: [
     "https://dedouleur.netlify.app",
+    "http://138.124.70.82:3005",
     "http://localhost:5173",
     "http://localhost:3000",
   ],
