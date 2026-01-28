@@ -109,6 +109,9 @@ const corsOptions = {
     return cb(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
+  // Browser preflight commonly asks for Content-Type; be explicit.
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
