@@ -115,6 +115,20 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
+
+// Extra safety: ensure Access-Control-Allow-Origin is always set for allowed origins.
+// Some proxy setups can behave oddly; this guarantees the browser gets the header.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) return next();
+
+  if (envCorsOrigins.includes("*") || allowedOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+  return next();
+});
+
 app.use(express.json({ limit: "200mb" }));
 app.use(express.static(path.join(__dirname, "..", "dist")));
 app.use("/images", express.static(imagesDir));
