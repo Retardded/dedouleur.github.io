@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./Projects.css";
 import { fetchProjects } from "../../lib/api";
 import { defaultProjects } from "../../data/defaultProjects";
-import sample from "../../assets/imgs/logo.svg";
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState(defaultProjects);
@@ -146,7 +145,9 @@ const Projects: React.FC = () => {
                     }}
                   />
                 ) : (
-                  <img src={project.image || sample} alt={project.title} />
+                  project.image && (
+                    <img src={project.image} alt={project.title} />
+                  )
                 )}
               </div>
             </figure>
@@ -192,11 +193,13 @@ const Projects: React.FC = () => {
                 className="modal__image"
               />
             ) : (
-              <img
-                src={currentProject.image || sample}
-                alt={currentProject.title}
-                className="modal__image"
-              />
+              currentProject.image && (
+                <img
+                  src={currentProject.image}
+                  alt={currentProject.title}
+                  className="modal__image"
+                />
+              )
             )}
           </div>
         </div>

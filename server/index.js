@@ -6,6 +6,12 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { v2 as cloudinary } from "cloudinary";
+import {
+  initDatabase,
+  createProjectsTable,
+  getAllProjects,
+  saveAllProjects,
+} from "./database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +26,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Создаём папки для данных и изображений
+// Initialize database
+initDatabase();
+await createProjectsTable();
+
+// Создаём папки для временных файлов (для multer)
 const dataDir = path.join(__dirname, "data");
 const imagesDir = path.join(__dirname, "data", "images");
 
@@ -93,39 +103,15 @@ const upload = multer({
     }
   },
 });
-
-const projectsFile = path.join(dataDir, "projects.json");
-
-// Вспомогательная функция для чтения проектов
-function getProjects() {
-  try {
-    if (fs.existsSync(projectsFile)) {
-      const data = fs.readFileSync(projectsFile, "utf8");
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error("Error reading projects:", error);
-  }
-  return [];
-}
-
-// Вспомогательная функция для сохранения проектов
-function saveProjects(projects) {
-  try {
-    fs.writeFileSync(projectsFile, JSON.stringify(projects, null, 2));
-    return true;
-  } catch (error) {
-    console.error("Error saving projects:", error);
-    return false;
-  }
-}
+// Database functions now imported from database.js
+// getProjects and saveProjects are now async and use PostgreSQL
 
 // API Routes
 
 // GET /api/projects - получить все проекты
-app.get("/api/projects", apiLimiter, (req, res) => {
+app.get("/api/projects", apiLimiter, async (req, res) => {
   try {
-    const projects = getProjects();
+    const projects = await getAllProjects();
     res.json(projects);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch projects" });
@@ -133,19 +119,21 @@ app.get("/api/projects", apiLimiter, (req, res) => {
 });
 
 // POST /api/projects - сохранить проекты
-app.post("/api/projects", apiLimiter, (req, res) => {
+app.post("/api/projects", apiLimiter, async (req, res) => {
   try {
     const projects = req.body;
     if (!Array.isArray(projects)) {
       return res.status(400).json({ error: "Projects must be an array" });
     }
 
-    if (saveProjects(projects)) {
+    const success = await saveAllProjects(projects);
+    if (success) {
       res.json({ success: true, message: "Projects saved successfully" });
     } else {
       res.status(500).json({ error: "Failed to save projects" });
     }
   } catch (error) {
+    console.error("Save error:", error);
     res.status(500).json({ error: "Failed to save projects" });
   }
 });
