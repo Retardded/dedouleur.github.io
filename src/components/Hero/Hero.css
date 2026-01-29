@@ -75,12 +75,13 @@
   display: block;
   object-fit: cover;
   border: none;
-  animation: hero-logo-pulse 3s ease-in-out infinite;
+  transform-origin: center;
+  animation: hero-logo-pulse 2.5s ease-in-out infinite;
 }
 
 @keyframes hero-logo-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.88; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.72; transform: scale(1.03); }
 }
 
 .hero__role {
