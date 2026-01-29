@@ -16,7 +16,7 @@ main {
   align-items: center;
   justify-content: center;
   padding: var(--spacing-xl) var(--spacing-md);
-  background: var(--color-bg, #0f0f0f);
+  background: var(--color-bg);
   z-index: 9999;
 }
 
@@ -29,6 +29,10 @@ main {
 }
 
 @media (max-width: 1400px) {
+  .app-loading {
+    padding: calc(var(--spacing-xl) + 60px) var(--spacing-md);
+  }
+
   .app-loading__logo {
     max-width: 90vw;
   }
