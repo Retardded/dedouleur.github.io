@@ -12,11 +12,12 @@
   max-width: var(--max-width);
   margin: 0 auto;
   width: 100%;
+  margin-top: -2.5rem;
 }
 
 .hero__content {
   position: absolute;
-  bottom: var(--spacing-lg);
+  bottom: calc(var(--spacing-lg) + 3rem);
   left: 0;
   right: 0;
   text-align: center;
@@ -51,15 +52,16 @@
 
 .hero__media {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
+  gap: var(--spacing-sm);
 }
 
 .hero__media-frame {
   width: 100%;
   max-width: 850px;
-  /* make the frame invisible so the image is standalone */
   padding: 0;
   border: none;
   box-shadow: none;
@@ -67,12 +69,53 @@
   display: block;
 }
 
-.hero__media-frame img {
+.hero__logo {
   width: 100%;
   height: auto;
   display: block;
   object-fit: cover;
   border: none;
+  animation: hero-logo-pulse 3s ease-in-out infinite;
+}
+
+@keyframes hero-logo-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
+.hero__role {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+  margin: 0;
+}
+
+/* Scroll hint */
+.hero__scroll-hint {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.hero__scroll-hint-icon {
+  width: 20px;
+  height: 20px;
+  border-right: 1px solid var(--color-text-muted);
+  border-bottom: 1px solid var(--color-text-muted);
+  transform: rotate(45deg);
+  animation: hero-scroll-bounce 2s ease-in-out infinite;
+}
+
+@keyframes hero-scroll-bounce {
+  0%, 100% { transform: rotate(45deg) translateY(0); opacity: 0.6; }
+  50% { transform: rotate(45deg) translateY(6px); opacity: 1; }
 }
 
 @media (max-width: 1400px) {
@@ -80,14 +123,37 @@
     padding: calc(var(--spacing-xl) + 60px) var(--spacing-md) var(--spacing-lg);
   }
 
+  .hero__container {
+    margin-top: -2rem;
+  }
+
   .hero__subtitle {
     font-size: 1.1rem;
   }
+
   .hero__container--centered {
     gap: var(--spacing-md);
   }
 
   .hero__media-frame {
     max-width: 90vw;
+  }
+
+  .hero__role {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+  }
+
+  .hero__content {
+    bottom: calc(var(--spacing-lg) + 2.5rem);
+  }
+
+  .hero__scroll-hint {
+    bottom: var(--spacing-sm);
+  }
+
+  .hero__scroll-hint-icon {
+    width: 16px;
+    height: 16px;
   }
 }
