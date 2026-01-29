@@ -39,6 +39,23 @@ html {
   min-height: 100dvh;
 }
 
+/* Safari 26 Liquid Glass: fixed background underlay
+   - height: 99% workaround (100% leaves gap behind floating bar)
+   - var(--vh) from JS syncs with visualViewport when bar shows/hides */
+html::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--vh, 99%);
+  min-height: var(--vh, 99%);
+  background: var(--color-bg);
+  z-index: -1;
+  pointer-events: none;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-text);
@@ -49,6 +66,7 @@ body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 a {
