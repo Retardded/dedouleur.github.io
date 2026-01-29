@@ -80,8 +80,6 @@ const App: React.FC = () => {
           src={logoSvg}
           alt=""
           className="app-loading__logo"
-          width={80}
-          height={80}
         />
       </div>
     );

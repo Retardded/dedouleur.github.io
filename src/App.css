@@ -8,22 +8,30 @@ main {
   flex: 1;
 }
 
-/* Initial loading screen: pulsing logo centered */
+/* Initial loading screen: pulsing logo, same size as hero__media-frame */
 .app-loading {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
   background: var(--color-bg, #0f0f0f);
   z-index: 9999;
 }
 
 .app-loading__logo {
-  width: 80px;
-  height: 80px;
+  width: 100%;
+  max-width: 850px;
+  height: auto;
   object-fit: contain;
   animation: app-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@media (max-width: 1400px) {
+  .app-loading__logo {
+    max-width: 90vw;
+  }
 }
 
 @keyframes app-loading-pulse {
