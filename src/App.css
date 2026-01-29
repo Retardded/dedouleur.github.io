@@ -7,3 +7,33 @@
 main {
   flex: 1;
 }
+
+/* Initial loading screen: pulsing logo centered */
+.app-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg, #0f0f0f);
+  z-index: 9999;
+}
+
+.app-loading__logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  animation: app-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes app-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
