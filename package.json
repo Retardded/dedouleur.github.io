@@ -9,7 +9,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "tsc && vite build",
     "build:vps": "VITE_BASE_URL=/ npm run build",
-    "build:gh": "VITE_BASE_URL=/chauzov_proj/ npm run build",
+    "build:gh": "VITE_BASE_URL=/dedouleur.github.io/ npm run build",
     "predeploy": "npm run build:gh",
     "start": "NODE_ENV=production node server/index.js",
     "preview": "vite preview",
