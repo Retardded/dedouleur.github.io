@@ -139,12 +139,13 @@ const authLimiter = rateLimit({
   message: "Too many authentication attempts, please try again later.",
 });
 
-// Middleware - CORS configuration for Netlify frontend and VPS
+// Middleware - CORS configuration for frontend origins
 const defaultCorsOrigins = [
+  "https://dedouleur.art",
   "https://dedouleur.netlify.app",
   "https://dedouleur.mooo.com",
-  // Common GitHub Pages origins (add your exact repo origin here if different)
   "https://retardded.github.io",
+  "https://retardded.github.io/dedouleur.github.io",
   // Local dev
   "http://localhost:5173",
   "http://localhost:3000",
