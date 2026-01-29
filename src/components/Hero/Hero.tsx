@@ -10,7 +10,7 @@ const Hero: React.FC = () => {
           <div className="hero__media-frame">
             <img src={photo} alt="deDouleur logo" className="hero__logo" />
           </div>
-          <p className="hero__role">graphic designer</p>
+          <p className="hero__role">contemporary artist</p>
         </div>
         <div className="hero__content">
           <p className="hero__subtitle">
