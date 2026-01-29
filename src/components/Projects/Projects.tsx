@@ -86,10 +86,19 @@ const Projects: React.FC = () => {
     }
   };
 
-  const filteredProjects = projects.filter((project) => {
-    const type = project.type || "image";
-    return filter === "all" || type === filter;
-  });
+  const filteredProjects = projects
+    .filter((project) => {
+      const type = project.type || "image";
+      return filter === "all" || type === filter;
+    })
+    .sort((a, b) => {
+      // Images first, videos at the bottom
+      const typeA = a.type || "image";
+      const typeB = b.type || "image";
+      if (typeA === "video" && typeB !== "video") return 1;
+      if (typeA !== "video" && typeB === "video") return -1;
+      return 0;
+    });
 
   const currentProject =
     selectedImageIndex !== null ? filteredProjects[selectedImageIndex] : null;
