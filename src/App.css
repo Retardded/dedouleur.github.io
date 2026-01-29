@@ -5,7 +5,7 @@
 }
 
 main {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 /* Initial loading screen: pulsing logo, same size as hero__media-frame */
