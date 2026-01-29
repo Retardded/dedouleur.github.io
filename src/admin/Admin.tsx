@@ -452,6 +452,22 @@ const Admin: React.FC = () => {
               onChange={handleImport}
             />
           </label>
+          <button
+            className="admin__btn"
+            onClick={() => {
+              const images = projects.filter(
+                (pr) => (pr.type || "image") === "image",
+              );
+              const videos = projects.filter((pr) => pr.type === "video");
+              setProjectsState([...images, ...videos]);
+              setSaveStatus(
+                "↕️ Videos moved to bottom. Click «Save Changes» to persist.",
+              );
+              setTimeout(() => setSaveStatus(""), 4000);
+            }}
+          >
+            ↕️ Videos to bottom
+          </button>
         </div>
       </header>
 
@@ -659,11 +675,6 @@ const Admin: React.FC = () => {
                         }}
                       />
                     </label>
-                    {p.image && p.image !== "loading..." && (
-                      <span className="admin__image-size">
-                        Size: {Math.round((p.image.length * 3) / 4 / 1024)} KB
-                      </span>
-                    )}
                   </div>
                   <button
                     className="admin__btn admin__btn--danger"

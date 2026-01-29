@@ -265,13 +265,6 @@
   display: none;
 }
 
-.admin__image-size {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
-
 .admin__btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
