@@ -82,7 +82,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
           if (i != null) setVisibleIndices((prev) => new Set([...prev, Number(i)]));
         });
       },
-      { rootMargin: "0px 0px -40px 0px", threshold: 0.1 }
+      { rootMargin: "0px 0px 120px 0px", threshold: 0 }
     );
     itemRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
@@ -198,7 +198,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
               }}
               data-gallery-index={index}
               className={`gallery__item ${visibleIndices.has(index) ? "gallery__item--visible" : ""}`}
-              style={{ ["--i" as string]: index }}
+              style={{ ["--delay" as string]: (index * 17) % 11 }}
             >
               <div
                 className="gallery__image-wrap"
