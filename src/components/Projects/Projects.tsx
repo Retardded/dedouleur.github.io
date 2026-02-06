@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Projects.css";
 import { fetchProjects, type Project } from "../../lib/api";
 import { defaultProjects } from "../../data/defaultProjects";
@@ -18,11 +18,47 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
     null,
   );
   const [videoFailed, setVideoFailed] = useState(false);
+  const [visibleIndices, setVisibleIndices] = useState<Set<number>>(new Set());
+  const [sectionInView, setSectionInView] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const itemRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     if (initialProjects != null && initialProjects.length > 0) return;
     loadProjects();
   }, [initialProjects]);
+
+  // Section in view: animate header (title + filter)
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setSectionInView(true);
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll-triggered animations: mark items visible when they enter the viewport
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, filteredProjects.length);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target as HTMLElement;
+          const i = el.getAttribute("data-gallery-index");
+          if (i != null) setVisibleIndices((prev) => new Set([...prev, Number(i)]));
+        });
+      },
+      { rootMargin: "0px 0px -40px 0px", threshold: 0.1 }
+    );
+    itemRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [filteredProjects.length]);
 
   const loadProjects = async () => {
     try {
@@ -114,7 +150,11 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
   };
 
   return (
-    <section id="projects" className="projects">
+    <section
+      id="projects"
+      ref={sectionRef}
+      className={`projects ${sectionInView ? "projects--in-view" : ""}`}
+    >
       <div className="projects__container">
         <h2 className="section__title">Gallery</h2>
         <div className="projects__filter">
@@ -123,6 +163,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("all");
               setSelectedImageIndex(null);
+              setVisibleIndices(new Set());
             }}
           >
             all
@@ -132,6 +173,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("image");
               setSelectedImageIndex(null);
+              setVisibleIndices(new Set());
             }}
           >
             imgs
@@ -141,6 +183,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("video");
               setSelectedImageIndex(null);
+              setVisibleIndices(new Set());
             }}
           >
             vids
@@ -148,7 +191,15 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
         </div>
         <div className="projects__gallery">
           {filteredProjects.map((project, index) => (
-            <figure key={project.id} className="gallery__item">
+            <figure
+              key={project.id}
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              data-gallery-index={index}
+              className={`gallery__item ${visibleIndices.has(index) ? "gallery__item--visible" : ""}`}
+              style={{ ["--i" as string]: index }}
+            >
               <div
                 className="gallery__image-wrap"
                 onClick={() => handleImageClick(index)}
