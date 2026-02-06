@@ -42,24 +42,6 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Scroll-triggered animations: mark items visible when they enter the viewport
-  useEffect(() => {
-    itemRefs.current = itemRefs.current.slice(0, filteredProjects.length);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          const i = el.getAttribute("data-gallery-index");
-          if (i != null) setVisibleIndices((prev) => new Set([...prev, Number(i)]));
-        });
-      },
-      { rootMargin: "0px 0px -40px 0px", threshold: 0.1 }
-    );
-    itemRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [filteredProjects.length]);
-
   const loadProjects = async () => {
     try {
       const serverProjects = await fetchProjects();
@@ -87,6 +69,24 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
       if (typeA !== "video" && typeB === "video") return -1;
       return 0;
     });
+
+  // Scroll-triggered animations: mark items visible when they enter the viewport
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, filteredProjects.length);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target as HTMLElement;
+          const i = el.getAttribute("data-gallery-index");
+          if (i != null) setVisibleIndices((prev) => new Set([...prev, Number(i)]));
+        });
+      },
+      { rootMargin: "0px 0px -40px 0px", threshold: 0.1 }
+    );
+    itemRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [filteredProjects.length]);
 
   const currentProject =
     selectedImageIndex !== null ? filteredProjects[selectedImageIndex] : null;
