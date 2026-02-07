@@ -20,7 +20,9 @@ const Hero: React.FC = () => {
       </div>
       <div className="hero__scroll-hint" aria-hidden="true">
         <span className="hero__scroll-hint-text">Scroll</span>
-        <span className="hero__scroll-hint-icon" />
+        <div className="hero__scroll-hint-icon-wrap">
+          <span className="hero__scroll-hint-icon" />
+        </div>
       </div>
     </section>
   )
