@@ -18,25 +18,48 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
     null,
   );
   const [videoFailed, setVideoFailed] = useState(false);
-  const [visibleIndices, setVisibleIndices] = useState<Set<number>>(new Set());
-  const [sectionInView, setSectionInView] = useState(false);
+  const [visibleItems, setVisibleItems] = useState<Map<number, "up" | "down">>(
+    () => new Map(),
+  );
+  const [sectionInView, setSectionInView] = useState<"up" | "down" | false>(
+    false,
+  );
   const sectionRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
+  const lastScrollY = useRef(0);
+  const scrollDirection = useRef<"up" | "down">("down");
 
   useEffect(() => {
     if (initialProjects != null && initialProjects.length > 0) return;
     loadProjects();
   }, [initialProjects]);
 
-  // Section in view: animate header (title + filter)
+  // Track scroll direction for entrance animations
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      scrollDirection.current = y > lastScrollY.current ? "down" : "up";
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Section in view: animate header (title + filter) from above or below by scroll direction
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) setSectionInView(true);
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting) {
+          setSectionInView(scrollDirection.current);
+        } else {
+          setSectionInView(false);
+        }
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -70,19 +93,29 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
       return 0;
     });
 
-  // Scroll-triggered animations: mark items visible when they enter the viewport
+  // Scroll-triggered animations: animate in when entering (down or up), reset when leaving
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, filteredProjects.length);
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
           const el = entry.target as HTMLElement;
           const i = el.getAttribute("data-gallery-index");
-          if (i != null) setVisibleIndices((prev) => new Set([...prev, Number(i)]));
+          if (i == null) return;
+          const index = Number(i);
+          const dir = scrollDirection.current;
+          setVisibleItems((prev) => {
+            const next = new Map(prev);
+            if (entry.isIntersecting) {
+              next.set(index, dir);
+            } else {
+              next.delete(index);
+            }
+            return next;
+          });
         });
       },
-      { rootMargin: "0px 0px 120px 0px", threshold: 0 }
+      { rootMargin: "0px 0px 120px 0px", threshold: 0 },
     );
     itemRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
@@ -153,7 +186,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
     <section
       id="projects"
       ref={sectionRef}
-      className={`projects ${sectionInView ? "projects--in-view" : ""}`}
+      className={`projects ${sectionInView ? `projects--in-view projects--in-view-from-${sectionInView}` : ""}`}
     >
       <div className="projects__container">
         <h2 className="section__title">Gallery</h2>
@@ -163,7 +196,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("all");
               setSelectedImageIndex(null);
-              setVisibleIndices(new Set());
+              setVisibleItems(new Map());
             }}
           >
             all
@@ -173,7 +206,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("image");
               setSelectedImageIndex(null);
-              setVisibleIndices(new Set());
+              setVisibleItems(new Map());
             }}
           >
             imgs
@@ -183,7 +216,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
             onClick={() => {
               setFilter("video");
               setSelectedImageIndex(null);
-              setVisibleIndices(new Set());
+              setVisibleItems(new Map());
             }}
           >
             vids
@@ -197,7 +230,7 @@ const Projects: React.FC<ProjectsProps> = ({ initialProjects }) => {
                 itemRefs.current[index] = el;
               }}
               data-gallery-index={index}
-              className={`gallery__item ${visibleIndices.has(index) ? "gallery__item--visible" : ""}`}
+              className={`gallery__item ${visibleItems.has(index) ? `gallery__item--visible-from-${visibleItems.get(index)}` : ""}`}
               style={{ ["--delay" as string]: (index * 17) % 11 }}
             >
               <div
