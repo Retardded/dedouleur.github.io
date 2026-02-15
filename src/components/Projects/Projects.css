@@ -15,22 +15,18 @@
 
 @keyframes projects-enter-from-below {
     from {
-        opacity: 0;
         transform: translateY(10px);
     }
     to {
-        opacity: 1;
         transform: translateY(0);
     }
 }
 
 @keyframes projects-enter-from-above {
     from {
-        opacity: 0;
         transform: translateY(-10px);
     }
     to {
-        opacity: 1;
         transform: translateY(0);
     }
 }
@@ -38,8 +34,6 @@
 .projects__container .section__title {
     margin-bottom: 0;
     width: auto;
-    opacity: 0;
-    transform: translateY(10px);
 }
 
 .projects--in-view-from-down .projects__container .section__title {
@@ -53,9 +47,6 @@
 .projects__filter {
     display: flex;
     gap: 1.5rem;
-    opacity: 0;
-    transform: translateY(10px);
-    transition-delay: 0.06s;
 }
 
 .projects--in-view-from-down .projects__filter {
