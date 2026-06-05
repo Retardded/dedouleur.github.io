@@ -7,7 +7,6 @@ import Footer from "./components/Footer/Footer";
 import { fetchProjects, type Project } from "./lib/api";
 import { defaultProjects } from "./data/defaultProjects";
 import { getCloudinaryVideoPoster } from "./lib/cloudinary";
-import logoSvg from "./assets/imgs/logo.svg";
 import "./App.css";
 
 const PRELOAD_TIMEOUT_MS = 12000;
@@ -48,8 +47,7 @@ function preloadImages(urls: string[]): Promise<void> {
 }
 
 const App: React.FC = () => {
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [initialProjects, setInitialProjects] = useState<Project[]>([]);
+  const [initialProjects, setInitialProjects] = useState<Project[]>(defaultProjects);
 
   useEffect(() => {
     let alive = true;
@@ -64,26 +62,12 @@ const App: React.FC = () => {
         setInitialProjects(list);
       } catch {
         if (alive) setInitialProjects(defaultProjects);
-      } finally {
-        if (alive) setInitialLoading(false);
       }
     })();
     return () => {
       alive = false;
     };
   }, []);
-
-  if (initialLoading) {
-    return (
-      <div className="app-loading" aria-busy="true" aria-label="Загрузка">
-        <img
-          src={logoSvg}
-          alt=""
-          className="app-loading__logo"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="app">
