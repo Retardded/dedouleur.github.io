@@ -192,6 +192,14 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "200mb" }));
 app.use("/images", express.static(imagesDir));
 
+// Serve the built frontend from the API VPS when it exists.
+// This is used for the hidden admin route under api.dedouleur.art.
+const distDir = path.join(__dirname, "..", "dist");
+const distIndex = path.join(distDir, "index.html");
+if (fs.existsSync(distIndex)) {
+  app.use(express.static(distDir));
+}
+
 // Настройка multer для загрузки изображений
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -321,6 +329,16 @@ app.delete("/api/images/:filename", authLimiter, requireAdmin, async (req, res) 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// SPA fallback for the hidden admin frontend on the API domain.
+if (fs.existsSync(distIndex)) {
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/") || req.path.startsWith("/images/")) {
+      return next();
+    }
+    res.sendFile(distIndex);
+  });
+}
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
