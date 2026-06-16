@@ -143,7 +143,7 @@ const authLimiter = rateLimit({
 const defaultCorsOrigins = [
   "https://dedouleur.art",
   "https://dedouleur.netlify.app",
-  "https://dedouleur.mooo.com",
+  "https://api.dedouleur.art",
   "https://retardded.github.io",
   "https://retardded.github.io/dedouleur.github.io",
   // Local dev
