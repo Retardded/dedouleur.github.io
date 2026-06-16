@@ -190,7 +190,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "200mb" }));
-app.use(express.static(path.join(__dirname, "..", "dist")));
 app.use("/images", express.static(imagesDir));
 
 // Настройка multer для загрузки изображений
@@ -321,11 +320,6 @@ app.delete("/api/images/:filename", authLimiter, requireAdmin, async (req, res) 
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
-
-// Fallback для SPA - отдаём index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
 });
 
 app.listen(PORT, "0.0.0.0", () => {
