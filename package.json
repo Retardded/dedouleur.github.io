@@ -15,7 +15,8 @@
     "start": "NODE_ENV=production node server/index.js",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
-    "deploy:project": "npm run predeploy:project && gh-pages -d dist"
+    "deploy:project": "npm run predeploy:project && gh-pages -d dist",
+    "import:cloudinary": "node scripts/import-cloudinary-portfolio.js"
   },
   "dependencies": {
     "@types/react": "^18.2.43",
