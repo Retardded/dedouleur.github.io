@@ -1,6 +1,8 @@
 import "dotenv/config";
 import pg from "pg";
 import { v2 as cloudinary } from "cloudinary";
+import { resolve4 } from "node:dns/promises";
+import { URL } from "node:url";
 
 const { Pool } = pg;
 
@@ -70,8 +72,18 @@ async function listResources(resourceType) {
 }
 
 async function main() {
+  const dbUrl = new URL(DATABASE_URL);
+  const ipv4Hosts = await resolve4(dbUrl.hostname);
+  if (!ipv4Hosts.length) {
+    throw new Error(`No IPv4 address found for database host: ${dbUrl.hostname}`);
+  }
+
   const pool = new Pool({
-    connectionString: DATABASE_URL,
+    host: ipv4Hosts[0],
+    port: Number(dbUrl.port || 5432),
+    user: decodeURIComponent(dbUrl.username),
+    password: decodeURIComponent(dbUrl.password),
+    database: dbUrl.pathname.replace(/^\//, ""),
     family: 4,
     ssl: { rejectUnauthorized: false },
   });
@@ -95,6 +107,20 @@ async function main() {
 
   try {
     await client.query("BEGIN");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        year VARCHAR(50),
+        category VARCHAR(100),
+        image TEXT,
+        video TEXT,
+        type VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     await client.query("DELETE FROM projects");
 
     for (const project of projects) {
