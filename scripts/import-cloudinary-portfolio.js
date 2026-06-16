@@ -72,6 +72,7 @@ async function listResources(resourceType) {
 async function main() {
   const pool = new Pool({
     connectionString: DATABASE_URL,
+    family: 4,
     ssl: { rejectUnauthorized: false },
   });
 

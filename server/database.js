@@ -16,6 +16,7 @@ export function initDatabase() {
 
   pool = new Pool({
     connectionString,
+    family: 4,
     ssl: {
       rejectUnauthorized: false
     }
