@@ -10,12 +10,12 @@ function normalizeBaseUrl(url: string): string {
 function defaultApiBaseUrl(): string {
   // In production on GitHub Pages or custom domain, same-origin has no backend -> /api/* will 404.
   // So we default to the VPS API unless explicitly overridden by VITE_API_URL.
-  if (typeof window === "undefined") return "https://api.dedouleur.art";
+  if (typeof window === "undefined") return "https://api.dedouleur.art:8443";
 
   const host = window.location.hostname.toLowerCase();
   const isGithubPages = host.endsWith(".github.io");
   const isCustomDomain = host === "dedouleur.art" || host.endsWith(".dedouleur.art");
-  if (isGithubPages || isCustomDomain) return "https://api.dedouleur.art";
+  if (isGithubPages || isCustomDomain) return "https://api.dedouleur.art:8443";
 
   // For local dev or when frontend is served by the backend (same origin),
   // use same-origin by default.

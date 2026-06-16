@@ -144,6 +144,7 @@ const defaultCorsOrigins = [
   "https://dedouleur.art",
   "https://dedouleur.netlify.app",
   "https://api.dedouleur.art",
+  "https://api.dedouleur.art:8443",
   "https://retardded.github.io",
   "https://retardded.github.io/dedouleur.github.io",
   // Local dev
